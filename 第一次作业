@@ -1,0 +1,51 @@
+pragma solidity ^0.4.14;
+
+contract Payroll 
+{
+    uint salary;
+    address currentAddress;
+    uint constant payDuration = 7 seconds;
+    uint lastPayday = now;
+    address owner;
+    
+    function Payroll() {
+        owner = msg.sender;
+    }
+    
+    function updateEmployee(address _address, uint _salary) returns (uint) {
+        require(msg.sender == owner);
+        if(_address != 0x0) {
+            uint payment = salary * (now - lastPayday)/payDuration;
+            currentAddress.transfer(payment);
+        }
+      currentAddress = _address;
+      salary = _salary * 1 ether;
+      lastPayday = now;
+    }
+    
+    function addFund()payable returns(uint) {
+        return this.balance;
+    }
+    
+    function payTimes()returns(uint){
+        return this.balance / salary;
+    }
+    
+    function hasEnoughFund()returns (bool){
+        return this.payTimes() > 0;
+    }
+    
+    function getPaid(){
+
+       uint nextPayday = lastPayday + payDuration;
+       if(nextPayday >now){
+           revert();
+       }
+       
+       lastPayday = nextPayday;
+       currentAddress.transfer(salary);
+   
+    }
+       
+}
+   
