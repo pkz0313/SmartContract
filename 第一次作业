@@ -1,22 +1,28 @@
 pragma solidity ^0.4.14;
 
-contract Payroll {
-    uint salary = 20 ether;
-    address tim = 0xca35b7d915458ef540ade6068dfe2f44e8fa733c;
+contract Payroll 
+{
+    uint salary;
+    address Address;
     uint constant payDuration = 7 days;
     uint lastPayday = now;
-    
-    function addFund() payable returns(uint) {
+    function setSalary()returns(uint sal){
+        salary = sal;
+    }
+    function setaddress()returns(address add){
+        Address = add;
+    }
+    function addFund()payable returns(uint) {
         return this.balance;
-   }
-   function paydegree() returns(uint){
-       return this.balance / salary;
-   }
+    }
+   function paydegree()returns(uint){
+        return this.balance / salary;
+    }
    function hasEnoughFund()returns (bool){
-    return this.paydegree() > 0;
-   }
+        return this.paydegree() > 0;
+    }
    function getPaid(){
-       if(msg.sender != tim){
+       if(msg.sender != Address){
            revert();
        }
        uint nextPayday = lastPayday + payDuration;
@@ -25,9 +31,9 @@ contract Payroll {
        }
        
            lastPayday = nextPayday;
-           tim.transfer(salary);
+           Address.transfer(salary);
    
-   }
+    }
        
 }
    
