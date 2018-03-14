@@ -18,7 +18,7 @@ contract Payroll
    function paydegree()returns(uint){
         return this.balance / salary;
     }
-   function hasEnoughFund()returns (bool){
+   function hasEnoughFund()returns(bool){
         return this.paydegree() > 0;
     }
    function getPaid(){
