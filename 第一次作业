@@ -6,7 +6,7 @@ contract Payroll {
     address currentEmployee;
     uint lastPayday;
     uint salary = 1 ether;
-    uint constant payDuration = 10 seconds;
+    uint constant payDuration = 1 seconds;
 
     function Payroll() {
         owner = msg.sender;
