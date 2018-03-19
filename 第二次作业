@@ -8,9 +8,10 @@ contract Payroll {
     }
 
          address owner;
-         Employee[] employees;
+         mapping(address => Employee)employees;
          uint constant payDuration = 10 seconds;
-
+         uint totalSalary;
+         
     function Payroll() {
          owner = msg.sender;
     }
@@ -20,41 +21,34 @@ contract Payroll {
          employee.id.transfer(payment);
     }   
     
-    function _findEmployee (address employeeId) private  returns (Employee, uint){
-         for (uint i = 0; i < employees.length; i++){
-         if (employees[i].id == employeeId){
-                return (employees[i], i);
-            }
-        }    
-    }
-    
     function addEmployee(address employeeId,uint salary){
          require(msg.sender == owner);
-         var (employee, index) = _findEmployee(employeeId);
+         var employee = employees[employeeId];
          assert(employee.id == 0x0);
-        
-         employees.push(Employee(employeeId,salary * 1 ether,now));
+         totalSalary += salary * 1 ether;
+         employees[employeeId] = Employee(employeeId,salary * 1 ether,now);
     }
     
     function removeEmployee(address employeeId){
          require(msg.sender == owner); 
-         var (employee, index) = _findEmployee(employeeId);
+         var employee = employees[employeeId];
          assert(employee.id != 0x0);
         
-         _partialPaid(employees[index]);
-         delete employees[index];
-         employees[index] = employees[employees.length -1];
-         employees.length -= 1;
+         _partialPaid(employee);
+         totalSalary -= employees[employeeId].salary;
+         delete employees[employeeId];
     }
     
     function updateEmployee(address employeeId, uint salary) {
          require(msg.sender == owner);
-         var (employee, index) = _findEmployee(employeeId);
+         var employee = employees[employeeId];
          assert(employee.id != 0x0);
         
          _partialPaid(employee);
-         employees[index].salary = salary * 1 ether;
-         employees[index].lastPayday = now;
+         totalSalary -= employees[employeeId].salary;
+         employees[employeeId].salary = salary * 1 ether;
+         totalSalary += employees[employeeId].salary;
+         employees[employeeId].lastPayday = now;
     }
     
     function addFund() payable returns (uint) {
@@ -63,11 +57,6 @@ contract Payroll {
     
     function calculateRunway() returns (uint) {
          uint totalSalary = 0;
-         for (uint i = 0; i < employees.length; i++){
-            totalSalary += employees[i].salary;
-        }
-         return this.balance / totalSalary; 
-        
     }    
     
     function hasEnoughFund() returns (bool) {
@@ -75,13 +64,44 @@ contract Payroll {
     }
     
     function getPaid() {
-         var (employee, index) = _findEmployee(msg.sender);
+         var employee = employees[msg.sender];
          assert(employee.id != 0x0);
         
          uint nextPayday = employee.lastPayday + payDuration;
          assert(nextPayday < now);
         
-         employees[index].lastPayday = nextPayday;
+         employees[msg.sender].lastPayday = nextPayday;
          employee.id.transfer(employee.salary);
     }
 }
+/*
+优化前的gas消耗：
+
+员工数量  transcation  execution
+   1       105206      82334 
+   2       91047       68175
+   3       91888       69016  
+   4       92729       69857
+   5       93507       70698    
+   6       94411       71539  
+   7       95252       72380
+   8       96093       73221
+   9       96934       74062
+   10      97775       74903
+
+
+
+优化后的gas消耗：
+
+员工数量  transcation  execution
+   1       104611      81739 
+   2       89611       66739
+   3       89611       66739  
+   4       89611       66739
+   5       89611       66739    
+   6       89611       66739  
+   7       89611       66739
+   8       89611       66739
+   9       89611       66739
+   10      89611       66739
+*/
